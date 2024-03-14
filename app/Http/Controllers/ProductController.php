@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Product;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -53,7 +53,6 @@ class ProductController extends Controller
             $product->price = $request->price;
             $product->save();
 
-            //return response()->json(['message' => 'Product created successfully', 'product' => $product]);
             $products = Product::orderBy('created_at', 'desc')->get();
             return view('auth.dashboard', ['products' => $products]);
         }

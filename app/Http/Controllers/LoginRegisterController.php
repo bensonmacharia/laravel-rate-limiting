@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Product;
+use Illuminate\Support\Str;
 
 class LoginRegisterController extends Controller
 {
@@ -45,14 +46,17 @@ class LoginRegisterController extends Controller
             'password' => 'required|min:8|confirmed'
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password)
+            'password' => Hash::make($request->password),
+            'api_token' => Str::random(60)
         ]);
 
+        //var_dump($user);die();
+
         $credentials = $request->only('email', 'password');
-        Auth::attempt($credentials);
+        Auth::guard('web')->attempt($credentials);
         $request->session()->regenerate();
         return redirect()->route('dashboard')
         ->withSuccess('You have successfully registered & logged in!');
@@ -80,8 +84,7 @@ class LoginRegisterController extends Controller
             'email' => 'required|email',
             'password' => 'required'
         ]);
-
-        if(Auth::attempt($credentials))
+        if (Auth::guard('web')->attempt($credentials))
         {
             $request->session()->regenerate();
             $products = Product::orderBy('created_at', 'desc')->get();
@@ -102,10 +105,10 @@ class LoginRegisterController extends Controller
      */
     public function dashboard()
     {
-        if(Auth::check())
+        if (Auth::guard('web')->check())
         {
-            $products = Product::orderBy('created_at', 'desc')->get();
-            return view('auth.dashboard', ['products' => $products]);
+            //$products = Product::orderBy('created_at', 'desc')->get();
+            return view('auth.dashboard');
         }
         
         return redirect()->route('login')
@@ -122,7 +125,7 @@ class LoginRegisterController extends Controller
      */
     public function logout(Request $request)
     {
-        Auth::logout();
+        Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect()->route('login')
