@@ -24,18 +24,19 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Modify rate limiting for APIs to 60 requests per minute
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
 
-        // Rate limit auth endpoints by user IP
+        // Rate limit auth endpoints to 10 requests per minute by user IP
         RateLimiter::for('auth', function (Request $request) {
             return Limit::perMinute(10)->by($request->ip());
         });
 
-        // Rate limit products endpoints by user
+        // Rate limit products endpoints to 30 requests per minute by user ID
         RateLimiter::for('product', function (Request $request) {
-            return Limit::perMinute(30)->by($request->ip());
+            return Limit::perMinute(30)->by($request->user()?->id);
         });
 
         $this->routes(function () {

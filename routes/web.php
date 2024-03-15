@@ -15,10 +15,12 @@ use App\Http\Controllers\ProductController;
 |
 */
 
+// Not throttled
 Route::get('/', function () {
     return view('welcome');
 });
 
+// Throttled through the auth rate limiter
 Route::group(['middleware' => 'throttle:auth'], function () {
     Route::get('/register', [LoginRegisterController::class, 'register'])->name('register');
     Route::post('/store', [LoginRegisterController::class, 'store'])->name('store');
@@ -28,6 +30,7 @@ Route::group(['middleware' => 'throttle:auth'], function () {
     Route::post('/logout', [LoginRegisterController::class, 'logout'])->name('logout');
 });
 
+// Throttled through the product rate limiter
 Route::middleware(['middleware' => 'throttle:product'])->group(function () {
     Route::get('/products', [ProductController::class, 'index'])->name('products');
     Route::get('/product/{product}', [ProductController::class, 'show'])->name('product.show');

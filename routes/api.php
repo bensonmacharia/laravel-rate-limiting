@@ -16,15 +16,20 @@ use \App\Http\Controllers\Api\V1\Auth;
 |
 */
 
-Route::middleware('auth:api')->get('/profile', function (Request $request) {
+// Endpoint requires authentication and is throttled through the auth rate limiter
+Route::middleware(['auth:api','throttle:auth'])->get('/profile', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/user/register', [APIController::class, 'register']);
-Route::post('/user/login', [APIController::class, 'login']);
-Route::middleware('auth:api')->get('/users', [APIController::class, 'users']);
-Route::middleware('auth:api')->get('/user/{id}', [APIController::class, 'user']);
+// Endpoints do not require authentication but they are throttled through the auth rate limiter
+Route::middleware(['throttle:auth'])->post('/user/register', [APIController::class, 'register']);
+Route::middleware(['throttle:auth'])->post('/user/login', [APIController::class, 'login']);
 
-Route::middleware('auth:api')->post('/product', [APIController::class, 'newProduct']);
-Route::middleware('auth:api')->get('/products', [APIController::class, 'index']);
-Route::middleware('auth:api')->get('/product/{id}', [APIController::class, 'product']);
+// Endpoints require authentication and are throttled through the auth rate limiter
+Route::middleware(['auth:api','throttle:auth'])->get('/users', [APIController::class, 'users']);
+Route::middleware(['auth:api','throttle:auth'])->get('/user/{id}', [APIController::class, 'user']);
+
+// Endpoints require authentication and are throttled through the auth product limiter
+Route::middleware(['auth:api','throttle:product'])->post('/product', [APIController::class, 'newProduct']);
+Route::middleware(['auth:api','throttle:product'])->get('/products', [APIController::class, 'index']);
+Route::middleware(['auth:api','throttle:product'])->get('/product/{id}', [APIController::class, 'product']);
